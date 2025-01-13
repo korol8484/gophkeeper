@@ -7,10 +7,24 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/korol8484/gophkeeper/pkg/model"
 	"io"
 	"net/http"
 	"time"
 )
+
+type Render interface {
+	Render(map[string]interface{}) error
+}
+
+type SecretI interface {
+	Format(Render) error
+	Title() string
+}
+
+type SaveI interface {
+	ToModel() *model.Secret
+}
 
 type Client struct {
 	client *http.Client
@@ -56,6 +70,8 @@ func (c *Client) Auth(ctx context.Context, login, password string) error {
 		return err
 	}
 
+	request.Header.Add("content-type", "application/json")
+
 	resp, err := c.client.Do(request)
 	if err != nil {
 		return err
@@ -96,6 +112,7 @@ func (c *Client) Register(ctx context.Context, login, password string) error {
 	if err != nil {
 		return err
 	}
+	request.Header.Add("content-type", "application/json")
 
 	resp, err := c.client.Do(request)
 	if err != nil {
@@ -121,4 +138,39 @@ func (c *Client) Register(ctx context.Context, login, password string) error {
 	}
 
 	return errors.New(string(body))
+}
+
+func (c *Client) Save(ctx context.Context, model SaveI) error {
+	// @todo Encrypt(model.content)
+
+	b, err := json.Marshal(model)
+	if err != nil {
+		return err
+	}
+
+	request, err := http.NewRequestWithContext(ctx, "POST", fmt.Sprintf("%s/api/user/save", c.cfg.ServiceHost), bytes.NewReader(b))
+	if err != nil {
+		return err
+	}
+	request.Header.Add("content-type", "application/json")
+	request.Header.Add("Authorization", c.auth.token)
+
+	resp, err := c.client.Do(request)
+	if err != nil {
+		return err
+	}
+	defer func(Body io.ReadCloser) {
+		_ = Body.Close()
+	}(resp.Body)
+
+	if resp.StatusCode > 299 {
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+
+		return errors.New(string(body))
+	}
+
+	return nil
 }

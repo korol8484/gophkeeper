@@ -9,7 +9,7 @@ var (
 type UserID int64
 
 type User struct {
-	ID           UserID
-	Login        string
-	PasswordHash string
+	ID           UserID `json:"id"`
+	Login        string `json:"login"`
+	PasswordHash string `json:"-"`
 }

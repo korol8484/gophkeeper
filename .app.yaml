@@ -1,0 +1,7 @@
+db:
+  dsn: "postgres://root:root@localhost:5432/gophkeeper?sslmode=disable&TimeZone=Europe/Moscow"
+token:
+  secret: "123456"
+  name: "Authorization"
+http:
+  listen: ":8091"
