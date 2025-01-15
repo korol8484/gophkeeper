@@ -51,6 +51,7 @@ func (c *Component) AddInput(id InputId, title string, opts ...func(*InputOption
 	}
 
 	t := textinput.New()
+
 	t.Placeholder = title
 	t.CharLimit = opt.charLimit
 	t.Cursor.Style = c.style.focusedStyle
@@ -64,6 +65,10 @@ func (c *Component) AddInput(id InputId, title string, opts ...func(*InputOption
 	if opt.password {
 		t.EchoMode = textinput.EchoPassword
 		t.EchoCharacter = '*'
+	}
+
+	if opt.textarea {
+		t.TextStyle.MaxHeight(3)
 	}
 
 	c.inputs = append(c.inputs, inputModel{

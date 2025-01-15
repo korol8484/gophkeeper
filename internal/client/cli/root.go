@@ -2,6 +2,7 @@ package cli
 
 import (
 	"github.com/korol8484/gophkeeper/internal/client/bubble"
+	"github.com/korol8484/gophkeeper/internal/client/crypt"
 	"github.com/korol8484/gophkeeper/internal/client/service"
 	"github.com/spf13/cobra"
 )
@@ -17,7 +18,7 @@ func Root() *cobra.Command {
 				return err
 			}
 
-			return bubble.Run(service.NewClient(cfg.client))
+			return bubble.Run(service.NewClient(cfg.client, crypt.NewService()))
 		},
 	}
 

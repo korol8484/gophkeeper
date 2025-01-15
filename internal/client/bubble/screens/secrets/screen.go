@@ -14,6 +14,7 @@ func NewSecretsScreen(service *service.Client) *Model {
 }
 
 func (m *Model) Update(msg tea.Msg) tea.Cmd {
+
 	return nil
 }
 
