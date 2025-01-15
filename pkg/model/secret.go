@@ -1,9 +1,12 @@
 package model
 
-import "time"
+import (
+	uuid "github.com/jackc/pgtype/ext/gofrs-uuid"
+	"time"
+)
 
 type Secret struct {
-	ID        int64                  `json:"id"`
+	ID        uuid.UUID              `json:"id"`
 	MetaData  map[string]interface{} `json:"meta_data"`
 	Version   int                    `json:"version"`
 	Content   []byte                 `json:"content"`
