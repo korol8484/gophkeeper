@@ -14,7 +14,7 @@ import (
 const (
 	title form.InputId = iota
 	login
-	passWord
+	password
 )
 
 type Model struct {
@@ -30,7 +30,7 @@ func NewPasswordScreen(service *service.Client) *Model {
 
 	m.form.AddInput(title, "Title", form.WithCharLimit(30))
 	m.form.AddInput(login, "Login", form.WithCharLimit(30))
-	m.form.AddInput(passWord, "Password", form.WithCharLimit(11), form.IsPassword(true))
+	m.form.AddInput(password, "Password", form.WithCharLimit(11), form.IsPassword(true))
 
 	m.form.AddButton("Save", m.save())
 	m.form.AddButton("Back", m.back())
@@ -58,7 +58,7 @@ func (m *Model) save() func() tea.Cmd {
 			vl = l
 		}
 
-		if p, ok := vals[passWord]; ok {
+		if p, ok := vals[password]; ok {
 			vp = p
 		}
 
