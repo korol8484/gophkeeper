@@ -3,10 +3,15 @@ package serve
 import (
 	"database/sql"
 	"fmt"
+	"github.com/korol8484/gophkeeper/internal/server/api/secret"
 	"github.com/korol8484/gophkeeper/internal/server/api/user"
 	"github.com/korol8484/gophkeeper/internal/server/app"
 	"github.com/korol8484/gophkeeper/internal/server/db"
 	"github.com/korol8484/gophkeeper/internal/server/logger"
+	"github.com/korol8484/gophkeeper/internal/server/secret/add"
+	"github.com/korol8484/gophkeeper/internal/server/secret/get"
+	"github.com/korol8484/gophkeeper/internal/server/secret/list"
+	sercretrepository "github.com/korol8484/gophkeeper/internal/server/secret/repository"
 	"github.com/korol8484/gophkeeper/internal/server/token"
 	"github.com/korol8484/gophkeeper/internal/server/user/auth"
 	"github.com/korol8484/gophkeeper/internal/server/user/repository"
@@ -47,6 +52,21 @@ func NewServeCommand(debug *bool) *cobra.Command {
 
 			httpSvc := app.NewApp(cfg.Http, logSvc)
 			httpSvc.AddHandler(userHandler.RegisterRoutes())
+
+			repo := sercretrepository.NewSecretRepository(repoDb)
+
+			serviceAdd := add.NewSecretService(repo)
+			addHandler := secret.NewSecretAddHandler(serviceAdd)
+
+			serviceList := list.NewSecretServiceList(repo)
+			listHandler := secret.NewListHandler(serviceList)
+
+			serviceGet := get.NewSecretServiceList(repo)
+			getHandler := secret.NewGetHandler(serviceGet)
+
+			httpSvc.AddHandler(addHandler.RegisterRoutes())
+			httpSvc.AddHandler(listHandler.RegisterRoutes())
+			httpSvc.AddHandler(getHandler.RegisterRoutes())
 
 			errCh := make(chan error, 1)
 			oss, stop := make(chan os.Signal, 1), make(chan struct{}, 1)
