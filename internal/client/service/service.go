@@ -22,17 +22,26 @@ type SecretI interface {
 	Title() string
 }
 
+// SaveI - hydrate to server model
 type SaveI interface {
 	ToModel() *model.Secret
 }
 
+// Crypto - crypt, decrypt interface
+type Crypto interface {
+	Encrypt(data []byte, key string) ([]byte, error)
+	Decrypt(data []byte, key string) ([]byte, error)
+}
+
+// Client - service usecase
 type Client struct {
 	client *http.Client
 	auth   *auth
 	cfg    *Config
+	crypt  Crypto
 }
 
-func NewClient(cfg *Config) *Client {
+func NewClient(cfg *Config, crypt Crypto) *Client {
 	def := http.DefaultTransport
 	def.(*http.Transport).TLSHandshakeTimeout = 5 * time.Second
 	def.(*http.Transport).TLSClientConfig = &tls.Config{
@@ -49,7 +58,8 @@ func NewClient(cfg *Config) *Client {
 		client: &http.Client{
 			Transport: def,
 		},
-		cfg: cfg,
+		cfg:   cfg,
+		crypt: crypt,
 	}
 
 	return s
@@ -141,14 +151,20 @@ func (c *Client) Register(ctx context.Context, login, password string) error {
 }
 
 func (c *Client) Save(ctx context.Context, model SaveI) error {
-	// @todo Encrypt(model.content)
+	var err error
 
-	b, err := json.Marshal(model)
+	m := model.ToModel()
+	m.Content, err = c.crypt.Encrypt(m.Content, c.auth.passKey)
 	if err != nil {
 		return err
 	}
 
-	request, err := http.NewRequestWithContext(ctx, "POST", fmt.Sprintf("%s/api/user/save", c.cfg.ServiceHost), bytes.NewReader(b))
+	b, err := json.Marshal(m)
+	if err != nil {
+		return err
+	}
+
+	request, err := http.NewRequestWithContext(ctx, "POST", fmt.Sprintf("%s/api/secret/save", c.cfg.ServiceHost), bytes.NewReader(b))
 	if err != nil {
 		return err
 	}

@@ -5,8 +5,13 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/korol8484/gophkeeper/internal/client/bubble/commands"
 	"github.com/korol8484/gophkeeper/internal/client/bubble/screens"
+	"github.com/korol8484/gophkeeper/internal/client/bubble/screens/add"
 	"github.com/korol8484/gophkeeper/internal/client/bubble/screens/auth"
+	"github.com/korol8484/gophkeeper/internal/client/bubble/screens/binary"
+	"github.com/korol8484/gophkeeper/internal/client/bubble/screens/card"
+	"github.com/korol8484/gophkeeper/internal/client/bubble/screens/password"
 	"github.com/korol8484/gophkeeper/internal/client/bubble/screens/secrets"
+	"github.com/korol8484/gophkeeper/internal/client/bubble/screens/text"
 	"github.com/korol8484/gophkeeper/internal/client/service"
 	"os"
 	"os/exec"
@@ -21,6 +26,11 @@ type model struct {
 func (m *model) Init() tea.Cmd {
 	m.screen.AddScreen(screens.AuthScreen, auth.NewAuthScreen(m.service))
 	m.screen.AddScreen(screens.SecretsScreen, secrets.NewSecretsScreen(m.service))
+	m.screen.AddScreen(screens.PasswordScreen, password.NewPasswordScreen(m.service))
+	m.screen.AddScreen(screens.AddScreen, add.NewAddScreen())
+	m.screen.AddScreen(screens.TextScreen, text.NewTextScreen(m.service))
+	m.screen.AddScreen(screens.CardScreen, card.NewCardScreen(m.service))
+	m.screen.AddScreen(screens.BinaryScreen, binary.NewFilePickerScreen(m.service))
 
 	m.style = lipgloss.NewStyle().
 		Margin(2)

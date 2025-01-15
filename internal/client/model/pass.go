@@ -7,8 +7,21 @@ import (
 
 type Password struct {
 	base
+	title    string
 	login    string
 	password string
+}
+
+func NewPassword(title, login, password string) *Password {
+	return &Password{
+		base: base{
+			version: 1,
+			time:    time.Now(),
+		},
+		title:    title,
+		login:    login,
+		password: password,
+	}
 }
 
 //func (p *Password) Format(r service.Render) error {
@@ -31,12 +44,13 @@ type Password struct {
 func (p *Password) ToModel() *model.Secret {
 	return &model.Secret{
 		MetaData: map[string]interface{}{
-			"login":    p.login,
-			"password": p.password,
+			"login": p.login,
+			"title": p.title,
+			"type":  "password",
 		},
-		Version:   0,
-		Content:   nil,
-		UpdatedAt: time.Time{},
+		Version:   p.version,
+		Content:   []byte(p.password),
+		UpdatedAt: p.time,
 	}
 }
 
