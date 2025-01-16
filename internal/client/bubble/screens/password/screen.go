@@ -2,6 +2,7 @@ package password
 
 import (
 	"context"
+	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/korol8484/gophkeeper/internal/client/bubble/commands"
 	"github.com/korol8484/gophkeeper/internal/client/bubble/components/form"
@@ -85,5 +86,13 @@ func (m *Model) save() func() tea.Cmd {
 func (m *Model) back() func() tea.Cmd {
 	return func() tea.Cmd {
 		return commands.WrapCmd(commands.GoTo(screens.SecretsScreen))
+	}
+}
+
+func (m *Model) GetHelp() []key.Binding {
+	return []key.Binding{
+		key.NewBinding(key.WithKeys("up"), key.WithHelp("↑/k", "up")),
+		key.NewBinding(key.WithKeys("down"), key.WithHelp("↓/j", "down")),
+		key.NewBinding(key.WithKeys("enter"), key.WithHelp("enter", "apply")),
 	}
 }

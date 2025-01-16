@@ -1,6 +1,7 @@
 package add
 
 import (
+	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/korol8484/gophkeeper/internal/client/bubble/commands"
@@ -73,4 +74,14 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 
 func (m *Model) View() string {
 	return m.list.View()
+}
+
+func (m *Model) GetHelp() []key.Binding {
+	return []key.Binding{
+		key.NewBinding(key.WithKeys("up", "k"), key.WithHelp("↑/k", "up")),
+		key.NewBinding(key.WithKeys("down", "j"), key.WithHelp("↓/j", "down")),
+		key.NewBinding(key.WithKeys("left", "h", "pgup", "b", "u"), key.WithHelp("←/h/pgup", "prev page")),
+		key.NewBinding(key.WithKeys("right", "l", "pgdown", "f", "d"), key.WithHelp("→/l/pgdn", "next page")),
+		key.NewBinding(key.WithKeys("enter"), key.WithHelp("enter", "apply")),
+	}
 }

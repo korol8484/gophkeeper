@@ -2,7 +2,6 @@ package bubble
 
 import (
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 	"github.com/korol8484/gophkeeper/internal/client/bubble/commands"
 	"github.com/korol8484/gophkeeper/internal/client/bubble/screens"
 	"github.com/korol8484/gophkeeper/internal/client/bubble/screens/add"
@@ -19,7 +18,6 @@ import (
 
 type model struct {
 	screen  *screenManager
-	style   lipgloss.Style
 	service *service.Client
 }
 
@@ -32,9 +30,6 @@ func (m *model) Init() tea.Cmd {
 	m.screen.AddScreen(screens.CardScreen, card.NewCardScreen(m.service))
 	m.screen.AddScreen(screens.BinaryScreen, binary.NewFilePickerScreen(m.service))
 
-	m.style = lipgloss.NewStyle().
-		Margin(2)
-
 	return func() tea.Msg {
 		return commands.GoTo(screens.AuthScreen)
 	}
@@ -45,10 +40,9 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
-		m.style = m.style.Width(msg.Width)
 		cmd := m.screen.Update(tea.WindowSizeMsg{
-			Width:  m.style.GetWidth() - 4,
-			Height: msg.Height,
+			Width:  msg.Width - 4,
+			Height: msg.Height - 4,
 		})
 
 		cmds = append(cmds, cmd)
@@ -66,7 +60,7 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m *model) View() string {
-	return m.style.Render(m.screen.View())
+	return m.screen.View()
 }
 
 func Run(client *service.Client) error {
