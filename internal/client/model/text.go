@@ -22,14 +22,12 @@ func NewText(title, text string) *Text {
 	}
 }
 
-func (p *Text) ToModel() *model.Secret {
-	return &model.Secret{
+func (p *Text) ToModel() *model.SecretCreateRequest {
+	return &model.SecretCreateRequest{
 		MetaData: map[string]interface{}{
 			"title": p.title,
 			"type":  "text",
 		},
-		Version:   p.version,
-		Content:   []byte(p.text),
-		UpdatedAt: p.time,
+		Content: []byte(p.text),
 	}
 }

@@ -52,8 +52,8 @@ func (h *GetHandler) secretGetHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // RegisterRoutes - Register user api routes
-func (h *GetHandler) RegisterRoutes() func(mux *chi.Mux) {
+func (h *GetHandler) RegisterRoutes(loader util.AuthSession) func(mux *chi.Mux) {
 	return func(mux *chi.Mux) {
-		mux.Get(SecretAPIGet, h.secretGetHandler)
+		mux.With(util.CheckAuth(loader)).Get(SecretAPIGet, h.secretGetHandler)
 	}
 }

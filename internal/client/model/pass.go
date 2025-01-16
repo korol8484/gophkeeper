@@ -41,16 +41,14 @@ func NewPassword(title, login, password string) *Password {
 //	return nil
 //}
 
-func (p *Password) ToModel() *model.Secret {
-	return &model.Secret{
+func (p *Password) ToModel() *model.SecretCreateRequest {
+	return &model.SecretCreateRequest{
 		MetaData: map[string]interface{}{
 			"login": p.login,
 			"title": p.title,
 			"type":  "password",
 		},
-		Version:   p.version,
-		Content:   []byte(p.password),
-		UpdatedAt: p.time,
+		Content: []byte(p.password),
 	}
 }
 

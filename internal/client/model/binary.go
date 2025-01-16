@@ -20,14 +20,12 @@ func NewBinary(title string) *Binary {
 	}
 }
 
-func (p *Binary) ToModel() *model.Secret {
-	return &model.Secret{
+func (p *Binary) ToModel() *model.SecretCreateRequest {
+	return &model.SecretCreateRequest{
 		MetaData: map[string]interface{}{
 			"title": p.title,
 			"type":  "binary",
 		},
-		Version:   p.version,
-		Content:   []byte(""),
-		UpdatedAt: p.time,
+		Content: []byte(""),
 	}
 }

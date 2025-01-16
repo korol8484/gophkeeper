@@ -19,7 +19,7 @@ func CheckAuth(loader AuthSession) func(h http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			userID, err := loader.LoadUserID(r)
 			if err != nil {
-				http.Error(w, "", http.StatusUnauthorized)
+				http.Error(w, "User not authorized", http.StatusUnauthorized)
 				return
 			}
 

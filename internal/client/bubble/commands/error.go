@@ -30,3 +30,10 @@ func ClearErrorAfter(t time.Duration) tea.Cmd {
 		return ClearErrorMsg{}
 	})
 }
+
+func NotifyMsg(msg string, t time.Duration) tea.Cmd {
+	return tea.Batch(
+		ErrorMsg(msg),
+		ClearErrorAfter(t),
+	)
+}

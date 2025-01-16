@@ -64,9 +64,9 @@ func NewServeCommand(debug *bool) *cobra.Command {
 			serviceGet := get.NewSecretServiceList(repo)
 			getHandler := secret.NewGetHandler(serviceGet)
 
-			httpSvc.AddHandler(addHandler.RegisterRoutes())
-			httpSvc.AddHandler(listHandler.RegisterRoutes())
-			httpSvc.AddHandler(getHandler.RegisterRoutes())
+			httpSvc.AddHandler(addHandler.RegisterRoutes(jwtSvc))
+			httpSvc.AddHandler(listHandler.RegisterRoutes(jwtSvc))
+			httpSvc.AddHandler(getHandler.RegisterRoutes(jwtSvc))
 
 			errCh := make(chan error, 1)
 			oss, stop := make(chan os.Signal, 1), make(chan struct{}, 1)

@@ -6,6 +6,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/korol8484/gophkeeper/internal/client/bubble/commands"
+	"github.com/korol8484/gophkeeper/internal/client/bubble/screens"
 	"github.com/korol8484/gophkeeper/internal/client/service"
 	"time"
 )
@@ -70,6 +71,8 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 				commands.ErrorMsg("blaaat"),
 				commands.ClearErrorAfter(10*time.Second),
 			)
+		case "a":
+			return commands.WrapCmd(commands.GoTo(screens.AddScreen))
 		}
 	}
 
@@ -83,11 +86,12 @@ func (m *Model) View() string {
 
 func (m *Model) GetHelp() []key.Binding {
 	return []key.Binding{
+		key.NewBinding(key.WithKeys("u"), key.WithHelp("u", "sync data")),
+		key.NewBinding(key.WithKeys("a"), key.WithHelp("a", "add new data")),
 		key.NewBinding(key.WithHelp("↑/k", "up")),
 		key.NewBinding(key.WithHelp("↓/j", "down")),
 		key.NewBinding(key.WithHelp("←/h/pgup", "prev page")),
 		key.NewBinding(key.WithHelp("→/l/pgdn", "next page")),
 		key.NewBinding(key.WithHelp("enter", "apply")),
-		key.NewBinding(key.WithKeys("u"), key.WithHelp("u", "sync data")),
 	}
 }

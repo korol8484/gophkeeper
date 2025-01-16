@@ -10,6 +10,7 @@ import (
 	"github.com/korol8484/gophkeeper/pkg/model"
 	"io"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -24,7 +25,7 @@ type SecretI interface {
 
 // SaveI - hydrate to server model
 type SaveI interface {
-	ToModel() *model.Secret
+	ToModel() *model.SecretCreateRequest
 }
 
 // Crypto - crypt, decrypt interface
@@ -105,7 +106,7 @@ func (c *Client) Auth(ctx context.Context, login, password string) error {
 		return err
 	}
 
-	return errors.New(string(body))
+	return errors.New(strings.Trim(string(body), "\n"))
 }
 
 func (c *Client) Register(ctx context.Context, login, password string) error {
@@ -164,7 +165,7 @@ func (c *Client) Save(ctx context.Context, model SaveI) error {
 		return err
 	}
 
-	request, err := http.NewRequestWithContext(ctx, "POST", fmt.Sprintf("%s/api/secret/save", c.cfg.ServiceHost), bytes.NewReader(b))
+	request, err := http.NewRequestWithContext(ctx, "POST", fmt.Sprintf("%s/user/secret", c.cfg.ServiceHost), bytes.NewReader(b))
 	if err != nil {
 		return err
 	}

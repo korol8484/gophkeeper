@@ -34,12 +34,12 @@ func NewJwtService(cfg *Config) *Service {
 
 // LoadUserID - load token from header, parse token, return user
 func (s *Service) LoadUserID(r *http.Request) (domain.UserID, error) {
-	cToken, err := r.Cookie(s.tokenName)
-	if err != nil {
+	cToken := r.Header.Get(s.tokenName)
+	if len(cToken) == 0 {
 		return 0, errors.New("user session not' start")
 	}
 
-	claim, err := s.loadClaims(cToken.Value)
+	claim, err := s.loadClaims(cToken)
 	if err != nil {
 		return 0, errors.New("token not valid")
 	}

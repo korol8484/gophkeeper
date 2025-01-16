@@ -29,14 +29,12 @@ func NewCard(title, number, year, month, cvv string) *Card {
 	}
 }
 
-func (p *Card) ToModel() *model.Secret {
-	return &model.Secret{
+func (p *Card) ToModel() *model.SecretCreateRequest {
+	return &model.SecretCreateRequest{
 		MetaData: map[string]interface{}{
 			"title": p.title,
 			"type":  "card",
 		},
-		Version:   p.version,
-		Content:   []byte(strings.Join([]string{p.number, p.year, p.month, p.cvv}, "||")),
-		UpdatedAt: p.time,
+		Content: []byte(strings.Join([]string{p.number, p.year, p.month, p.cvv}, "||")),
 	}
 }

@@ -69,7 +69,10 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 		}
 	}
 
-	return nil
+	var cmd tea.Cmd
+	m.list, cmd = m.list.Update(msg)
+
+	return cmd
 }
 
 func (m *Model) View() string {

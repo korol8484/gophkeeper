@@ -36,7 +36,7 @@ func NewPasswordScreen(service *service.Client) *Model {
 	m.form.AddButton("Save", m.save())
 	m.form.AddButton("Back", m.back())
 
-	return &Model{service: service}
+	return m
 }
 
 func (m *Model) Update(msg tea.Msg) tea.Cmd {
@@ -68,7 +68,7 @@ func (m *Model) save() func() tea.Cmd {
 		}
 
 		if len(vl) == 0 || len(vp) == 0 || len(vt) == 0 {
-			return commands.WrapCmd(commands.Error("all field required"))
+			return commands.NotifyMsg("all field required", 5*time.Second)
 		}
 
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -76,10 +76,13 @@ func (m *Model) save() func() tea.Cmd {
 
 		err := m.service.Save(ctx, model.NewPassword(vt, vl, vp))
 		if err != nil {
-			return commands.WrapCmd(commands.Error(err.Error()))
+			return commands.NotifyMsg(err.Error(), 5*time.Second)
 		}
 
-		return commands.WrapCmd(commands.GoTo(screens.SecretsScreen))
+		return tea.Batch(
+			commands.NotifyMsg("New secret add success", 5*time.Second),
+			commands.WrapCmd(commands.GoTo(screens.SecretsScreen)),
+		)
 	}
 }
 

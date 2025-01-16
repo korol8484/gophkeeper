@@ -61,8 +61,8 @@ func (h *AddHandler) secretAddHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // RegisterRoutes - Register user api routes
-func (h *AddHandler) RegisterRoutes() func(mux *chi.Mux) {
+func (h *AddHandler) RegisterRoutes(loader util.AuthSession) func(mux *chi.Mux) {
 	return func(mux *chi.Mux) {
-		mux.Post(SecretAPIAdd, h.secretAddHandler)
+		mux.With(util.CheckAuth(loader)).Post(SecretAPIAdd, h.secretAddHandler)
 	}
 }

@@ -40,7 +40,7 @@ func NewCardScreen(service *service.Client) *Model {
 	m.form.AddButton("Save", m.save())
 	m.form.AddButton("Back", m.back())
 
-	return &Model{service: service}
+	return m
 }
 
 func (m *Model) Update(msg tea.Msg) tea.Cmd {
@@ -64,24 +64,24 @@ func (m *Model) save() func() tea.Cmd {
 		}
 
 		if t, ok := vals[number]; ok {
-			cTitle = t
+			cNumber = t
 		}
 
 		if t, ok := vals[year]; ok {
-			cTitle = t
+			cYear = t
 		}
 
 		if t, ok := vals[month]; ok {
-			cTitle = t
+			cMonth = t
 		}
 
 		if t, ok := vals[cvv]; ok {
-			cTitle = t
+			cCvv = t
 		}
 
 		for _, s := range []string{cTitle, cNumber, cYear, cMonth, cCvv} {
 			if len(s) == 0 {
-				return commands.WrapCmd(commands.Error("all field required"))
+				return commands.NotifyMsg("all field required", 5*time.Second)
 			}
 		}
 
@@ -90,10 +90,13 @@ func (m *Model) save() func() tea.Cmd {
 
 		err := m.service.Save(ctx, model.NewCard(cTitle, cNumber, cYear, cMonth, cCvv))
 		if err != nil {
-			return commands.WrapCmd(commands.Error(err.Error()))
+			return commands.NotifyMsg(err.Error(), 5*time.Second)
 		}
 
-		return commands.WrapCmd(commands.GoTo(screens.SecretsScreen))
+		return tea.Batch(
+			commands.NotifyMsg("New secret add success", 5*time.Second),
+			commands.WrapCmd(commands.GoTo(screens.SecretsScreen)),
+		)
 	}
 }
 

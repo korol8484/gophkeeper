@@ -46,12 +46,12 @@ func (s *screenManager) Update(msg tea.Msg) tea.Cmd {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		s.width = msg.Width
-		s.height = msg.Height - lipgloss.Height(s.helpView()) - lipgloss.Height(s.errView())
+		s.height = msg.Height
 		s.help.Width = msg.Width
 
 		cmd := s.screens[s.current].Update(tea.WindowSizeMsg{
 			Width:  s.width,
-			Height: s.height,
+			Height: s.height - lipgloss.Height(s.helpView()) - lipgloss.Height(s.errView()),
 		})
 
 		cmds = append(cmds, cmd)
@@ -60,11 +60,26 @@ func (s *screenManager) Update(msg tea.Msg) tea.Cmd {
 	case commands.NavigateCmd:
 		s.err = nil
 		s.current = int(msg)
-		cmds = append(cmds, s.screens[s.current].Update(msg))
+		cmds = append(
+			cmds,
+			s.screens[s.current].Update(tea.WindowSizeMsg{
+				Width:  s.width,
+				Height: s.height,
+			}),
+			s.screens[s.current].Update(msg),
+		)
 	case commands.ErrorCmd:
 		s.err = msg
+		cmds = append(cmds, s.screens[s.current].Update(tea.WindowSizeMsg{
+			Width:  s.width,
+			Height: s.height - lipgloss.Height(s.errView()),
+		}))
 	case commands.ClearErrorMsg:
 		s.err = nil
+		cmds = append(cmds, s.screens[s.current].Update(tea.WindowSizeMsg{
+			Width:  s.width,
+			Height: s.height,
+		}))
 	default:
 		if ss, ok := s.screens[s.current]; ok {
 			return ss.Update(msg)
@@ -80,18 +95,20 @@ func (s *screenManager) View() string {
 		return ""
 	}
 
+	errView := s.errView()
+	helpView := s.helpView()
+
 	contents := []string{
 		lipgloss.NewStyle().
 			Width(s.width).
-			Height(s.height).
+			Height(s.height - lipgloss.Height(helpView) - lipgloss.Height(errView)).
 			BorderStyle(lipgloss.NormalBorder()).Render(ss.View()),
 	}
 
-	if s.err != nil {
-		contents = append(contents, s.errView())
+	if len(errView) > 0 {
+		contents = append(contents, errView)
 	}
 
-	helpView := s.helpView()
 	if len(helpView) > 0 {
 		contents = append(contents, helpView)
 	}
