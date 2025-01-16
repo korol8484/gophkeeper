@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	cliModel "github.com/korol8484/gophkeeper/internal/client/model"
 	"github.com/korol8484/gophkeeper/pkg/model"
 	"io"
 	"net/http"
@@ -81,7 +82,7 @@ func (c *Client) Auth(ctx context.Context, login, password string) error {
 		return err
 	}
 
-	request.Header.Add("content-type", "application/json")
+	request.Header.Add("Content-Type", "application/json")
 
 	resp, err := c.client.Do(request)
 	if err != nil {
@@ -123,7 +124,7 @@ func (c *Client) Register(ctx context.Context, login, password string) error {
 	if err != nil {
 		return err
 	}
-	request.Header.Add("content-type", "application/json")
+	request.Header.Add("Content-Type", "application/json")
 
 	resp, err := c.client.Do(request)
 	if err != nil {
@@ -169,7 +170,7 @@ func (c *Client) Save(ctx context.Context, model SaveI) error {
 	if err != nil {
 		return err
 	}
-	request.Header.Add("content-type", "application/json")
+	request.Header.Add("Content-Type", "application/json")
 	request.Header.Add("Authorization", c.auth.token)
 
 	resp, err := c.client.Do(request)
@@ -190,4 +191,37 @@ func (c *Client) Save(ctx context.Context, model SaveI) error {
 	}
 
 	return nil
+}
+
+func (c *Client) Load(ctx context.Context) ([]cliModel.BaseI, error) {
+	request, err := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("%s/user/secret", c.cfg.ServiceHost), nil)
+	if err != nil {
+		return nil, err
+	}
+	request.Header.Add("Content-Type", "application/json")
+	request.Header.Add("Authorization", c.auth.token)
+
+	resp, err := c.client.Do(request)
+	if err != nil {
+		return nil, err
+	}
+	defer func(Body io.ReadCloser) {
+		_ = Body.Close()
+	}(resp.Body)
+
+	if resp.StatusCode > 299 {
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return nil, err
+		}
+
+		return nil, errors.New(string(body))
+	}
+
+	var m []model.Secret
+	if err = json.NewDecoder(resp.Body).Decode(&m); err != nil {
+		return nil, err
+	}
+
+	return cliModel.LoadModels(m), nil
 }
