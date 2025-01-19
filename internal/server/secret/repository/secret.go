@@ -22,8 +22,6 @@ func NewSecretRepository(db *sql.DB) *SecretRepository {
 }
 
 func (r *SecretRepository) Add(ctx context.Context, metaData map[string]interface{}, context []byte, userId domain.UserID, version int, added time.Time) (*uuid.UUID, error) {
-	var id *uuid.UUID
-
 	insertId := uuid.New()
 	metaDataJson, err := json.Marshal(metaData)
 
@@ -32,7 +30,7 @@ func (r *SecretRepository) Add(ctx context.Context, metaData map[string]interfac
 	}
 	err = r.db.QueryRowContext(
 		ctx,
-		fmt.Sprintf(`INSERT INTO %s (id, meta_data, context, user_id, version, added, updated) VALUES ($1, $2, $3, $4, $5, $6, $7) returning id;`, tableName),
+		fmt.Sprintf(`INSERT INTO %s (id, meta_data, context, user_id, version, added, updated) VALUES ($1, $2, $3, $4, $5, $6, $7);`, tableName),
 		insertId,
 		metaDataJson,
 		context,
@@ -40,13 +38,13 @@ func (r *SecretRepository) Add(ctx context.Context, metaData map[string]interfac
 		version,
 		added,
 		added,
-	).Scan(&id)
+	).Err()
 	if err != nil {
 
 		return nil, err
 	}
 
-	return id, nil
+	return &insertId, nil
 }
 
 func (r *SecretRepository) GetAllByUserID(ctx context.Context, userID domain.UserID) ([]*model.Secret, error) {
