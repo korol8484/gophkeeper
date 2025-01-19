@@ -3,7 +3,6 @@ package secret
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 	"github.com/korol8484/gophkeeper/internal/server/api/util"
@@ -34,8 +33,6 @@ func (h *AddHandler) secretAddHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "внутренняя ошибка сервера. Не опознан пользователь", http.StatusUnauthorized)
 		return
 	}
-
-	fmt.Print(r.Body)
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {

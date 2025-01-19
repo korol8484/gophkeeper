@@ -10,9 +10,7 @@ type AuthSession interface {
 	LoadUserID(r *http.Request) (domain.UserID, error)
 }
 
-type key string
-
-var ctxUserKey key = "ctx_user_id"
+var ctxUserKey string = "ctx_user_id"
 
 func CheckAuth(loader AuthSession) func(h http.Handler) http.Handler {
 	return func(h http.Handler) http.Handler {
