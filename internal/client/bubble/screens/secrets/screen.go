@@ -126,11 +126,11 @@ func (m *Model) GetHelp() []key.Binding {
 	return []key.Binding{
 		key.NewBinding(key.WithKeys("u"), key.WithHelp("u", "sync data")),
 		key.NewBinding(key.WithKeys("a"), key.WithHelp("a", "add new data")),
-		key.NewBinding(key.WithHelp("↑/k", "up")),
-		key.NewBinding(key.WithHelp("↓/j", "down")),
-		key.NewBinding(key.WithHelp("←/h/pgup", "prev page")),
-		key.NewBinding(key.WithHelp("→/l/pgdn", "next page")),
-		key.NewBinding(key.WithHelp("enter", "apply")),
+		key.NewBinding(key.WithKeys("up"), key.WithHelp("↑/k", "up")),
+		key.NewBinding(key.WithKeys("down"), key.WithHelp("↓/j", "down")),
+		//key.NewBinding(key.WithHelp("←/h/pgup", "prev page")),
+		//key.NewBinding(key.WithHelp("→/l/pgdn", "next page")),
+		//key.NewBinding(key.WithHelp("enter", "apply")),
 	}
 }
 
