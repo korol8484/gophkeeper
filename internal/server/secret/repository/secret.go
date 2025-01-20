@@ -49,7 +49,6 @@ func (r *SecretRepository) Add(ctx context.Context, metaData map[string]interfac
 
 func (r *SecretRepository) GetAllByUserID(ctx context.Context, userID domain.UserID) ([]*model.Secret, error) {
 	var list []*model.Secret
-	var secret model.Secret
 	var metaDataJson []byte
 
 	rows, err := r.db.QueryContext(ctx, fmt.Sprintf(`SELECT id, meta_data, context, version, added, updated FROM %s WHERE user_id = $1;`, tableName), userID)
@@ -59,6 +58,7 @@ func (r *SecretRepository) GetAllByUserID(ctx context.Context, userID domain.Use
 	defer rows.Close()
 
 	for rows.Next() {
+		var secret model.Secret
 		err = rows.Scan(&secret.ID, &metaDataJson, &secret.Content, &secret.Version, &secret.CreatedAt, &secret.UpdatedAt)
 		if err != nil {
 			println(err.Error())
