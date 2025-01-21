@@ -2,6 +2,7 @@ package form
 
 import (
 	"fmt"
+	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"strings"
@@ -14,18 +15,26 @@ type inputModel struct {
 	id InputId
 }
 
+type keyMap struct {
+	up     key.Binding
+	action key.Binding
+	down   key.Binding
+}
+
 type Component struct {
 	inputs         []inputModel
 	buttons        []button
 	focusIndex     int
 	style          *style
 	formComponents int
+	keyMap         keyMap
 }
 
 func NewComponent() *Component {
 	m := &Component{
 		inputs: []inputModel{},
 		style:  defaultStyle(),
+		keyMap: defaultKeyMap(),
 	}
 
 	return m
@@ -62,6 +71,10 @@ func (c *Component) AddInput(id InputId, title string, opts ...func(*InputOption
 		t.TextStyle = c.style.focusedStyle
 	}
 
+	if opt.validate != nil {
+		t.Validate = opt.validate
+	}
+
 	if opt.password {
 		t.EchoMode = textinput.EchoPassword
 		t.EchoCharacter = '*'
@@ -88,55 +101,80 @@ func (c *Component) Init() tea.Cmd {
 func (c *Component) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		switch key := msg.String(); key {
-		case "tab", "shift+tab", "enter", "up", "down":
-			s := msg.String()
-
-			// Did the user press enter while the submit button was focused?
-			if s == "enter" && len(c.buttons) > 0 {
-				bIdx := c.focusIndex - len(c.inputs)
-				if bIdx > -1 {
-					return c, c.buttons[bIdx].callback()
-				}
-			}
-
-			// Cycle indexes
-			if s == "up" || s == "shift+tab" {
-				c.focusIndex--
-			} else {
-				c.focusIndex++
-			}
-
-			if c.focusIndex >= c.formComponents {
-				c.focusIndex = 0
-			} else if c.focusIndex < 0 {
-				c.focusIndex = c.formComponents - 1
-			}
-
-			cmds := make([]tea.Cmd, len(c.inputs))
-			for j := 0; j <= len(c.inputs)-1; j++ {
-				if j == c.focusIndex {
-					// Set focused state
-					cmds[j] = c.inputs[j].Focus()
-
-					c.inputs[j].PromptStyle = c.style.focusedStyle
-					c.inputs[j].TextStyle = c.style.focusedStyle
-					continue
-				}
-
-				// Remove focused state
-				c.inputs[j].Blur()
-				c.inputs[j].PromptStyle = c.style.noStyle
-				c.inputs[j].TextStyle = c.style.noStyle
-			}
-
-			return c, tea.Batch(cmds...)
+		switch {
+		case key.Matches(msg, c.keyMap.up):
+			c.up()
+			return c, tea.Batch(c.updateStyle()...)
+		case key.Matches(msg, c.keyMap.action):
+			return c, c.action()
+		case key.Matches(msg, c.keyMap.down):
+			c.down()
+			return c, tea.Batch(c.updateStyle()...)
 		}
 	}
 
-	cmd := c.updateInputs(msg)
+	return c, c.updateInputs(msg)
+}
 
-	return c, cmd
+func (c *Component) Validate() []error {
+	var err []error
+	for j := range c.inputs {
+		if c.inputs[j].Validate == nil {
+			continue
+		}
+
+		if errStr := c.inputs[j].Validate(c.inputs[j].Value()); errStr != nil {
+			err = append(err, errStr)
+		}
+	}
+
+	return err
+}
+
+func (c *Component) action() tea.Cmd {
+	if len(c.buttons) > 0 {
+		bIdx := c.focusIndex - len(c.inputs)
+		if bIdx > -1 {
+			return c.buttons[bIdx].callback()
+		}
+	}
+
+	return nil
+}
+
+func (c *Component) up() {
+	c.focusIndex--
+	if c.focusIndex < 0 {
+		c.focusIndex = c.formComponents - 1
+	}
+}
+
+func (c *Component) down() {
+	c.focusIndex++
+	if c.focusIndex >= c.formComponents {
+		c.focusIndex = 0
+	}
+}
+
+func (c *Component) updateStyle() []tea.Cmd {
+	cmds := make([]tea.Cmd, len(c.inputs))
+	for j := 0; j <= len(c.inputs)-1; j++ {
+		if j == c.focusIndex {
+			// Set focused state
+			cmds[j] = c.inputs[j].Focus()
+
+			c.inputs[j].PromptStyle = c.style.focusedStyle
+			c.inputs[j].TextStyle = c.style.focusedStyle
+			continue
+		}
+
+		// Remove focused state
+		c.inputs[j].Blur()
+		c.inputs[j].PromptStyle = c.style.noStyle
+		c.inputs[j].TextStyle = c.style.noStyle
+	}
+
+	return cmds
 }
 
 func (c *Component) updateInputs(msg tea.Msg) tea.Cmd {
@@ -181,4 +219,12 @@ func (c *Component) Values() Values {
 	}
 
 	return vals
+}
+
+func defaultKeyMap() keyMap {
+	return keyMap{
+		up:     key.NewBinding(key.WithKeys("up"), key.WithHelp("tab/shift+tab/↑", "up")),
+		action: key.NewBinding(key.WithKeys("enter"), key.WithHelp("enter", "action")),
+		down:   key.NewBinding(key.WithKeys("tab", "shift+tab", "down"), key.WithHelp("↓", "down")),
+	}
 }

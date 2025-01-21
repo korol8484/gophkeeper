@@ -2,10 +2,12 @@ package auth
 
 import (
 	"context"
+	"errors"
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/korol8484/gophkeeper/internal/client/bubble/commands"
 	"github.com/korol8484/gophkeeper/internal/client/bubble/components/form"
+	"github.com/korol8484/gophkeeper/internal/client/bubble/components/valitators"
 	"github.com/korol8484/gophkeeper/internal/client/bubble/screens"
 	"github.com/korol8484/gophkeeper/internal/client/service"
 	"time"
@@ -27,8 +29,14 @@ func NewAuthScreen(service *service.Client) *Model {
 		form:    form.NewComponent(),
 	}
 
-	m.form.AddInput(login, "Login", form.WithCharLimit(30))
-	m.form.AddInput(passWord, "Password", form.WithCharLimit(11), form.IsPassword(true))
+	m.form.AddInput(login, "Login", form.WithCharLimit(30), form.WithValidate(valitators.Length("Login", 1, 30)))
+	m.form.AddInput(
+		passWord,
+		"Password",
+		form.WithCharLimit(11),
+		form.IsPassword(true),
+		form.WithValidate(valitators.Length("Password", 1, 11)),
+	)
 	m.form.AddButton("Login", m.login())
 	m.form.AddButton("Register", m.register())
 
@@ -44,16 +52,16 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 
 func (m *Model) login() func() tea.Cmd {
 	return func() tea.Cmd {
-		l, p := m.loadVals()
-
-		if len(l) == 0 || len(p) == 0 {
-			return commands.WrapCmd(commands.Error("login or password empty"))
+		if c := m.validate(); c != nil {
+			return c
 		}
+
+		vals := m.form.Values()
 
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 
-		err := m.service.Auth(ctx, l, p)
+		err := m.service.Auth(ctx, vals[login], vals[passWord])
 		if err != nil {
 			return commands.WrapCmd(commands.Error(err.Error()))
 		}
@@ -64,16 +72,16 @@ func (m *Model) login() func() tea.Cmd {
 
 func (m *Model) register() func() tea.Cmd {
 	return func() tea.Cmd {
-		l, p := m.loadVals()
-
-		if len(l) == 0 || len(p) == 0 {
-			return commands.WrapCmd(commands.Error("login or password empty"))
+		if c := m.validate(); c != nil {
+			return c
 		}
+
+		vals := m.form.Values()
 
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 
-		err := m.service.Register(ctx, l, p)
+		err := m.service.Register(ctx, vals[login], vals[passWord])
 		if err != nil {
 			return commands.WrapCmd(commands.Error(err.Error()))
 		}
@@ -82,19 +90,13 @@ func (m *Model) register() func() tea.Cmd {
 	}
 }
 
-func (m *Model) loadVals() (string, string) {
-	var vl, vp string
-	vals := m.form.Values()
-
-	if l, ok := vals[login]; ok {
-		vl = l
+func (m *Model) validate() tea.Cmd {
+	fErr := m.form.Validate()
+	if len(fErr) > 0 {
+		return commands.WrapCmd(commands.Error(errors.Join(fErr...).Error()))
 	}
 
-	if p, ok := vals[passWord]; ok {
-		vp = p
-	}
-
-	return vl, vp
+	return nil
 }
 
 func (m *Model) View() string {
