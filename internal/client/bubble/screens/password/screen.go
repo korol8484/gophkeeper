@@ -9,7 +9,7 @@ import (
 	"github.com/korol8484/gophkeeper/internal/client/bubble/screens"
 	"github.com/korol8484/gophkeeper/internal/client/model"
 	"github.com/korol8484/gophkeeper/internal/client/service"
-	"time"
+	"github.com/korol8484/gophkeeper/pkg"
 )
 
 const (
@@ -68,19 +68,19 @@ func (m *Model) save() func() tea.Cmd {
 		}
 
 		if len(vl) == 0 || len(vp) == 0 || len(vt) == 0 {
-			return commands.NotifyMsg("all field required", 5*time.Second)
+			return commands.NotifyMsg("all field required", pkg.TimeOut)
 		}
 
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 2*pkg.TimeOut)
 		defer cancel()
 
 		err := m.service.Save(ctx, model.NewPassword(vt, vl, vp))
 		if err != nil {
-			return commands.NotifyMsg(err.Error(), 5*time.Second)
+			return commands.NotifyMsg(err.Error(), pkg.TimeOut)
 		}
 
 		return tea.Batch(
-			commands.NotifyMsg("New secret add success", 5*time.Second),
+			commands.NotifyMsg("New secret add success", pkg.TimeOut),
 			commands.WrapCmd(commands.GoTo(screens.SecretsScreen)),
 		)
 	}

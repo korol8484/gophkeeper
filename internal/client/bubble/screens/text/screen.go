@@ -71,11 +71,11 @@ func (m *Model) save() func() tea.Cmd {
 
 		err := m.service.Save(ctx, model.NewText(vt, vp))
 		if err != nil {
-			return commands.NotifyMsg(err.Error(), 5*time.Second)
+			return commands.NotifyMsg(err.Error(), pkg.TimeOut)
 		}
 
 		return tea.Batch(
-			commands.NotifyMsg("New secret add success", 5*time.Second),
+			commands.NotifyMsg("New secret add success", pkg.TimeOut),
 			commands.WrapCmd(commands.GoTo(screens.SecretsScreen)),
 		)
 	}

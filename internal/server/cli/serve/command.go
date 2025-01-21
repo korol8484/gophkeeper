@@ -73,12 +73,6 @@ func NewServeCommand(debug *bool) *cobra.Command {
 			signal.Notify(oss, os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
 
 			go func() {
-				<-oss
-
-				stop <- struct{}{}
-			}()
-
-			go func() {
 				if err = httpSvc.Run(*debug); err != nil {
 					errCh <- err
 				}
@@ -86,6 +80,9 @@ func NewServeCommand(debug *bool) *cobra.Command {
 
 			for {
 				select {
+				case <-oss:
+					httpSvc.Stop()
+					return nil
 				case e := <-errCh:
 					return e
 				case <-stop:

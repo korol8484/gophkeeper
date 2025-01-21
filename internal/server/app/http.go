@@ -82,7 +82,7 @@ func (a *App) AddHandler(handler registerHandler) {
 
 // Stop -
 func (a *App) Stop() {
-	ctx, shutdown := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, shutdown := context.WithTimeout(context.Background(), pkg.TimeOut)
 	defer shutdown()
 
 	_ = a.httpServer.Shutdown(ctx)

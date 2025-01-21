@@ -7,11 +7,10 @@ import (
 	"github.com/google/uuid"
 	"github.com/korol8484/gophkeeper/internal/server/api/util"
 	"github.com/korol8484/gophkeeper/internal/server/domain"
+	"github.com/korol8484/gophkeeper/pkg"
 	"github.com/korol8484/gophkeeper/pkg/model"
 	"net/http"
 )
-
-const SecretAPIGet = "/user/secret/{id}"
 
 type GetHandler struct {
 	service secretServiceGetI
@@ -54,6 +53,6 @@ func (h *GetHandler) secretGetHandler(w http.ResponseWriter, r *http.Request) {
 // RegisterRoutes - Register user api routes
 func (h *GetHandler) RegisterRoutes(loader util.AuthSession) func(mux *chi.Mux) {
 	return func(mux *chi.Mux) {
-		mux.With(util.CheckAuth(loader)).Get(SecretAPIGet, h.secretGetHandler)
+		mux.With(util.CheckAuth(loader)).Get(pkg.SecretAPIGet, h.secretGetHandler)
 	}
 }
