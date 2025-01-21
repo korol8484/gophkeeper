@@ -223,5 +223,12 @@ func (c *Client) Load(ctx context.Context) ([]cliModel.BaseI, error) {
 		return nil, err
 	}
 
+	for i, v := range m {
+		m[i].Content, err = c.crypt.Decrypt(v.Content, c.auth.passKey)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return cliModel.LoadModels(m), nil
 }
