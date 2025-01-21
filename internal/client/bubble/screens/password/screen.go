@@ -2,14 +2,17 @@ package password
 
 import (
 	"context"
+	"errors"
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/korol8484/gophkeeper/internal/client/bubble/commands"
 	"github.com/korol8484/gophkeeper/internal/client/bubble/components/form"
+	"github.com/korol8484/gophkeeper/internal/client/bubble/components/valitators"
 	"github.com/korol8484/gophkeeper/internal/client/bubble/screens"
 	"github.com/korol8484/gophkeeper/internal/client/model"
 	"github.com/korol8484/gophkeeper/internal/client/service"
 	"github.com/korol8484/gophkeeper/pkg"
+	"time"
 )
 
 const (
@@ -29,9 +32,15 @@ func NewPasswordScreen(service *service.Client) *Model {
 		form:    form.NewComponent(),
 	}
 
-	m.form.AddInput(title, "Title", form.WithCharLimit(30))
-	m.form.AddInput(login, "Login", form.WithCharLimit(30))
-	m.form.AddInput(password, "Password", form.WithCharLimit(11), form.IsPassword(true))
+	m.form.AddInput(title, "Title", form.WithCharLimit(30), form.WithValidate(valitators.Required("Title")))
+	m.form.AddInput(login, "Login", form.WithCharLimit(30), form.WithValidate(valitators.Length("Login", 5, 30)))
+	m.form.AddInput(
+		password,
+		"Password",
+		form.WithCharLimit(11),
+		form.IsPassword(true),
+		form.WithValidate(valitators.Length("Password", 5, 11)),
+	)
 
 	m.form.AddButton("Save", m.save())
 	m.form.AddButton("Back", m.back())
@@ -52,29 +61,17 @@ func (m *Model) View() string {
 
 func (m *Model) save() func() tea.Cmd {
 	return func() tea.Cmd {
+		fErr := m.form.Validate()
+		if len(fErr) > 0 {
+			return commands.WrapCmd(commands.Error(errors.Join(fErr...).Error()))
+		}
+
 		vals := m.form.Values()
 
-		var vl, vp, vt string
-		if l, ok := vals[login]; ok {
-			vl = l
-		}
-
-		if p, ok := vals[password]; ok {
-			vp = p
-		}
-
-		if t, ok := vals[title]; ok {
-			vt = t
-		}
-
-		if len(vl) == 0 || len(vp) == 0 || len(vt) == 0 {
-			return commands.NotifyMsg("all field required", pkg.TimeOut)
-		}
-
-		ctx, cancel := context.WithTimeout(context.Background(), 2*pkg.TimeOut)
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 
-		err := m.service.Save(ctx, model.NewPassword(vt, vl, vp))
+		err := m.service.Save(ctx, model.NewPassword(vals[title], vals[login], vals[password]))
 		if err != nil {
 			return commands.NotifyMsg(err.Error(), pkg.TimeOut)
 		}

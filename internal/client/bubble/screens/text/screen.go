@@ -2,13 +2,16 @@ package text
 
 import (
 	"context"
+	"errors"
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/korol8484/gophkeeper/internal/client/bubble/commands"
 	"github.com/korol8484/gophkeeper/internal/client/bubble/components/form"
+	"github.com/korol8484/gophkeeper/internal/client/bubble/components/valitators"
 	"github.com/korol8484/gophkeeper/internal/client/bubble/screens"
 	"github.com/korol8484/gophkeeper/internal/client/model"
 	"github.com/korol8484/gophkeeper/internal/client/service"
+	"github.com/korol8484/gophkeeper/pkg"
 	"time"
 )
 
@@ -18,18 +21,26 @@ const (
 )
 
 type Model struct {
+	keyMap  keyMap
 	service *service.Client
 	form    *form.Component
+}
+
+type keyMap struct {
+	lineUp   key.Binding
+	lineDown key.Binding
+	enter    key.Binding
 }
 
 func NewTextScreen(service *service.Client) *Model {
 	m := &Model{
 		service: service,
 		form:    form.NewComponent(),
+		keyMap:  defaultKeyMap(),
 	}
 
-	m.form.AddInput(title, "Title", form.WithCharLimit(30))
-	m.form.AddInput(text, "Text", form.WithCharLimit(5000), form.IsTextArea(true))
+	m.form.AddInput(title, "Title", form.WithCharLimit(30), form.WithValidate(valitators.Required("Title")))
+	m.form.AddInput(text, "Text", form.WithValidate(valitators.Required("Text")))
 
 	m.form.AddButton("Save", m.save())
 	m.form.AddButton("Back", m.back())
@@ -50,26 +61,16 @@ func (m *Model) View() string {
 
 func (m *Model) save() func() tea.Cmd {
 	return func() tea.Cmd {
-		vals := m.form.Values()
-
-		var vp, vt string
-
-		if p, ok := vals[text]; ok {
-			vp = p
-		}
-
-		if t, ok := vals[title]; ok {
-			vt = t
-		}
-
-		if len(vp) == 0 || len(vt) == 0 {
-			return commands.WrapCmd(commands.Error("all field required"))
+		fErr := m.form.Validate()
+		if len(fErr) > 0 {
+			return commands.WrapCmd(commands.Error(errors.Join(fErr...).Error()))
 		}
 
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 
-		err := m.service.Save(ctx, model.NewText(vt, vp))
+		vals := m.form.Values()
+		err := m.service.Save(ctx, model.NewText(vals[title], vals[text]))
 		if err != nil {
 			return commands.NotifyMsg(err.Error(), pkg.TimeOut)
 		}
@@ -89,8 +90,14 @@ func (m *Model) back() func() tea.Cmd {
 
 func (m *Model) GetHelp() []key.Binding {
 	return []key.Binding{
-		key.NewBinding(key.WithKeys("up"), key.WithHelp("↑/k", "up")),
-		key.NewBinding(key.WithKeys("down"), key.WithHelp("↓/j", "down")),
-		key.NewBinding(key.WithKeys("enter"), key.WithHelp("enter", "apply")),
+		m.keyMap.lineUp, m.keyMap.lineDown, m.keyMap.enter,
+	}
+}
+
+func defaultKeyMap() keyMap {
+	return keyMap{
+		lineUp:   key.NewBinding(key.WithKeys("up"), key.WithHelp("↑/k", "up")),
+		lineDown: key.NewBinding(key.WithKeys("down"), key.WithHelp("↓/j", "down")),
+		enter:    key.NewBinding(key.WithKeys("enter"), key.WithHelp("enter", "apply")),
 	}
 }

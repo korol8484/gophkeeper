@@ -2,7 +2,6 @@ package secrets
 
 import (
 	"context"
-	"fmt"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
@@ -22,7 +21,15 @@ type viewTableModel interface {
 	GetId() uuid.UUID
 }
 
+type keyMap struct {
+	lineUp   key.Binding
+	lineDown key.Binding
+	new      key.Binding
+	sync     key.Binding
+}
+
 type Model struct {
+	keyMap   keyMap
 	service  *service.Client
 	table    table.Model
 	style    lipgloss.Style
@@ -60,7 +67,8 @@ func NewSecretsScreen(service *service.Client) *Model {
 		style: lipgloss.NewStyle().
 			BorderStyle(lipgloss.NormalBorder()).
 			BorderForeground(lipgloss.Color("240")),
-		init: false,
+		init:   false,
+		keyMap: defaultKeyMap(),
 	}
 }
 
@@ -76,22 +84,10 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		switch msg.String() {
-		case "esc":
-			if m.table.Focused() {
-				m.table.Blur()
-			} else {
-				m.table.Focus()
-			}
-		case "enter":
-			m.table.UpdateViewport()
-			return tea.Batch(
-				commands.ErrorMsg(fmt.Sprintf("Let's go to %s!", m.table.SelectedRow()[1])),
-				commands.ClearErrorAfter(pkg.TimeOut),
-			)
-		case "u":
+		switch {
+		case key.Matches(msg, m.keyMap.sync):
 			return m.loadTable()
-		case "a":
+		case key.Matches(msg, m.keyMap.new):
 			return commands.WrapCmd(commands.GoTo(screens.AddScreen))
 		}
 	}
@@ -125,13 +121,16 @@ func (m *Model) View() string {
 
 func (m *Model) GetHelp() []key.Binding {
 	return []key.Binding{
-		key.NewBinding(key.WithKeys("u"), key.WithHelp("u", "sync data")),
-		key.NewBinding(key.WithKeys("a"), key.WithHelp("a", "add new data")),
-		key.NewBinding(key.WithKeys("up"), key.WithHelp("↑/k", "up")),
-		key.NewBinding(key.WithKeys("down"), key.WithHelp("↓/j", "down")),
-		//key.NewBinding(key.WithHelp("←/h/pgup", "prev page")),
-		//key.NewBinding(key.WithHelp("→/l/pgdn", "next page")),
-		//key.NewBinding(key.WithHelp("enter", "apply")),
+		m.keyMap.sync, m.keyMap.new, m.keyMap.lineUp, m.keyMap.lineDown,
+	}
+}
+
+func defaultKeyMap() keyMap {
+	return keyMap{
+		lineUp:   key.NewBinding(key.WithKeys("up"), key.WithHelp("↑/k", "up")),
+		lineDown: key.NewBinding(key.WithKeys("down"), key.WithHelp("↓/j", "down")),
+		new:      key.NewBinding(key.WithKeys("a"), key.WithHelp("a", "add new data")),
+		sync:     key.NewBinding(key.WithKeys("u"), key.WithHelp("u", "sync data")),
 	}
 }
 
