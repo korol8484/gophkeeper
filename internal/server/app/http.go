@@ -6,9 +6,9 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/korol8484/gophkeeper/internal/server/app/middlewares"
+	"github.com/korol8484/gophkeeper/pkg"
 	"go.uber.org/zap"
 	"net/http"
-	"time"
 )
 
 type middlewareHandler func(http.Handler) http.Handler
@@ -82,7 +82,7 @@ func (a *App) AddHandler(handler registerHandler) {
 
 // Stop -
 func (a *App) Stop() {
-	ctx, shutdown := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, shutdown := context.WithTimeout(context.Background(), pkg.TimeOut)
 	defer shutdown()
 
 	_ = a.httpServer.Shutdown(ctx)

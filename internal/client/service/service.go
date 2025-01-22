@@ -8,11 +8,11 @@ import (
 	"errors"
 	"fmt"
 	cliModel "github.com/korol8484/gophkeeper/internal/client/model"
+	"github.com/korol8484/gophkeeper/pkg"
 	"github.com/korol8484/gophkeeper/pkg/model"
 	"io"
 	"net/http"
 	"strings"
-	"time"
 )
 
 type Render interface {
@@ -45,7 +45,7 @@ type Client struct {
 
 func NewClient(cfg *Config, crypt Crypto) *Client {
 	def := http.DefaultTransport
-	def.(*http.Transport).TLSHandshakeTimeout = 5 * time.Second
+	def.(*http.Transport).TLSHandshakeTimeout = pkg.TimeOut
 	def.(*http.Transport).TLSClientConfig = &tls.Config{
 		CipherSuites: []uint16{
 			tls.TLS_RSA_WITH_AES_128_CBC_SHA,
@@ -77,7 +77,7 @@ func (c *Client) Auth(ctx context.Context, login, password string) error {
 		return err
 	}
 
-	request, err := http.NewRequestWithContext(ctx, "POST", fmt.Sprintf("%s/api/user/login", c.cfg.ServiceHost), bytes.NewReader(b))
+	request, err := http.NewRequestWithContext(ctx, "POST", fmt.Sprintf("%s"+pkg.UserLogin, c.cfg.ServiceHost), bytes.NewReader(b))
 	if err != nil {
 		return err
 	}
@@ -92,7 +92,7 @@ func (c *Client) Auth(ctx context.Context, login, password string) error {
 		_ = Body.Close()
 	}(resp.Body)
 
-	if resp.StatusCode >= 200 && resp.StatusCode <= 299 {
+	if resp.StatusCode >= http.StatusOK && resp.StatusCode <= 299 {
 		token := resp.Header.Get("Authorization")
 		if len(token) == 0 {
 			return errors.New("authorization header not set in response")
@@ -120,7 +120,7 @@ func (c *Client) Register(ctx context.Context, login, password string) error {
 		return err
 	}
 
-	request, err := http.NewRequestWithContext(ctx, "POST", fmt.Sprintf("%s/api/user/register", c.cfg.ServiceHost), bytes.NewReader(b))
+	request, err := http.NewRequestWithContext(ctx, "POST", fmt.Sprintf("%s"+pkg.UserRegister, c.cfg.ServiceHost), bytes.NewReader(b))
 	if err != nil {
 		return err
 	}
@@ -134,7 +134,7 @@ func (c *Client) Register(ctx context.Context, login, password string) error {
 		_ = Body.Close()
 	}(resp.Body)
 
-	if resp.StatusCode >= 200 && resp.StatusCode <= 299 {
+	if resp.StatusCode >= http.StatusOK && resp.StatusCode <= 299 {
 		token := resp.Header.Get("Authorization")
 		if len(token) == 0 {
 			return errors.New("authorization header not set in response")
@@ -166,7 +166,7 @@ func (c *Client) Save(ctx context.Context, model SaveI) error {
 		return err
 	}
 
-	request, err := http.NewRequestWithContext(ctx, "POST", fmt.Sprintf("%s/user/secret", c.cfg.ServiceHost), bytes.NewReader(b))
+	request, err := http.NewRequestWithContext(ctx, "POST", fmt.Sprintf("%s"+pkg.SecretAPIAdd, c.cfg.ServiceHost), bytes.NewReader(b))
 	if err != nil {
 		return err
 	}
@@ -194,7 +194,7 @@ func (c *Client) Save(ctx context.Context, model SaveI) error {
 }
 
 func (c *Client) Load(ctx context.Context) ([]cliModel.BaseI, error) {
-	request, err := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("%s/user/secret", c.cfg.ServiceHost), nil)
+	request, err := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("%s"+pkg.SecretAPIAdd, c.cfg.ServiceHost), nil)
 	if err != nil {
 		return nil, err
 	}

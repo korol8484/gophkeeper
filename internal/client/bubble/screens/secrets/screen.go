@@ -11,6 +11,7 @@ import (
 	"github.com/korol8484/gophkeeper/internal/client/bubble/screens"
 	cliModel "github.com/korol8484/gophkeeper/internal/client/model"
 	"github.com/korol8484/gophkeeper/internal/client/service"
+	"github.com/korol8484/gophkeeper/pkg"
 	"time"
 )
 
@@ -141,7 +142,7 @@ func (m *Model) loadTable() tea.Cmd {
 	if err != nil {
 		return tea.Batch(
 			commands.ErrorMsg(err.Error()),
-			commands.ClearErrorAfter(5*time.Second),
+			commands.ClearErrorAfter(pkg.TimeOut),
 		)
 	}
 
@@ -162,6 +163,6 @@ func (m *Model) loadTable() tea.Cmd {
 
 	return tea.Batch(
 		commands.ErrorMsg("Data updated"),
-		commands.ClearErrorAfter(5*time.Second),
+		commands.ClearErrorAfter(pkg.TimeOut),
 	)
 }

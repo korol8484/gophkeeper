@@ -21,7 +21,6 @@ func (h *Handler) registerHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// можно добавить сервис валидации, политики пароля...
 	if req.Login == "" || req.Password == "" {
 		http.Error(w, "неверный формат запроса", http.StatusBadRequest)
 		return

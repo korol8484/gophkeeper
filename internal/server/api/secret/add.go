@@ -7,12 +7,11 @@ import (
 	"github.com/google/uuid"
 	"github.com/korol8484/gophkeeper/internal/server/api/util"
 	"github.com/korol8484/gophkeeper/internal/server/domain"
+	"github.com/korol8484/gophkeeper/pkg"
 	"github.com/korol8484/gophkeeper/pkg/model"
 	"io"
 	"net/http"
 )
-
-const SecretAPIAdd = "/user/secret"
 
 type AddHandler struct {
 	service secretServiceI
@@ -60,6 +59,6 @@ func (h *AddHandler) secretAddHandler(w http.ResponseWriter, r *http.Request) {
 // RegisterRoutes - Register user api routes
 func (h *AddHandler) RegisterRoutes(loader util.AuthSession) func(mux *chi.Mux) {
 	return func(mux *chi.Mux) {
-		mux.With(util.CheckAuth(loader)).Post(SecretAPIAdd, h.secretAddHandler)
+		mux.With(util.CheckAuth(loader)).Post(pkg.SecretAPIAdd, h.secretAddHandler)
 	}
 }

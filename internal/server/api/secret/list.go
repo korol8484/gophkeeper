@@ -6,11 +6,10 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/korol8484/gophkeeper/internal/server/api/util"
 	"github.com/korol8484/gophkeeper/internal/server/domain"
+	"github.com/korol8484/gophkeeper/pkg"
 	"github.com/korol8484/gophkeeper/pkg/model"
 	"net/http"
 )
-
-const SecretAPIList = "/user/secret"
 
 type ListHandler struct {
 	service secretServiceListI
@@ -46,6 +45,6 @@ func (h *ListHandler) secretGetAllHandler(w http.ResponseWriter, r *http.Request
 // RegisterRoutes - Register user api routes
 func (h *ListHandler) RegisterRoutes(loader util.AuthSession) func(mux *chi.Mux) {
 	return func(mux *chi.Mux) {
-		mux.With(util.CheckAuth(loader)).Get(SecretAPIList, h.secretGetAllHandler)
+		mux.With(util.CheckAuth(loader)).Get(pkg.SecretAPIList, h.secretGetAllHandler)
 	}
 }

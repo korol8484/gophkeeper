@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/go-chi/chi/v5"
 	"github.com/korol8484/gophkeeper/internal/server/domain"
+	"github.com/korol8484/gophkeeper/pkg"
 	"net/http"
 )
 
@@ -42,7 +43,7 @@ type request struct {
 // RegisterRoutes - Register user api routes
 func (h *Handler) RegisterRoutes() func(mux *chi.Mux) {
 	return func(mux *chi.Mux) {
-		mux.Post("/api/user/register", h.registerHandler)
-		mux.Post("/api/user/login", h.authHandler)
+		mux.Post(pkg.UserRegister, h.registerHandler)
+		mux.Post(pkg.UserLogin, h.authHandler)
 	}
 }

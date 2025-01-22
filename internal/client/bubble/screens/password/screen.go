@@ -11,6 +11,7 @@ import (
 	"github.com/korol8484/gophkeeper/internal/client/bubble/screens"
 	"github.com/korol8484/gophkeeper/internal/client/model"
 	"github.com/korol8484/gophkeeper/internal/client/service"
+	"github.com/korol8484/gophkeeper/pkg"
 	"time"
 )
 
@@ -72,11 +73,11 @@ func (m *Model) save() func() tea.Cmd {
 
 		err := m.service.Save(ctx, model.NewPassword(vals[title], vals[login], vals[password]))
 		if err != nil {
-			return commands.NotifyMsg(err.Error(), 5*time.Second)
+			return commands.NotifyMsg(err.Error(), pkg.TimeOut)
 		}
 
 		return tea.Batch(
-			commands.NotifyMsg("New secret add success", 5*time.Second),
+			commands.NotifyMsg("New secret add success", pkg.TimeOut),
 			commands.WrapCmd(commands.GoTo(screens.SecretsScreen)),
 		)
 	}
